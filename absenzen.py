@@ -88,10 +88,6 @@ exam_info['Datum'] = pd.to_datetime(exam_info['Datum']).dt.strftime('%Y-%m-%d')
 
 # Vacation dates and durations in days
 year = datetime.today().year
-csv_path_vac = os.path.join(script_dir, "Feiertage_Semesterstart.xlsx")
-df_vacation = pd.read_excel(csv_path_vac)
-df_vacation['Startdatum'] = pd.to_datetime(df_vacation['Startdatum']).dt.strftime('%Y-%m-%d')
-
 tagderarbeit= datetime.strptime(f'{year}-05-01', '%Y-%m-%d').strftime('%Y-%m-%d')
 auffahrt = datetime.fromisocalendar(year, 20, 4).strftime('%Y-%m-%d')
 pfingsten = datetime.fromisocalendar(year, 22, 1).strftime('%Y-%m-%d')
