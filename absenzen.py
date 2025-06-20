@@ -149,7 +149,7 @@ df_filtered_absences = pd.merge(df_excused_absences_counted, df_unexcused_absenc
 end_date_seven = pd.Timestamp.today().normalize() - pd.Timedelta(days=7)
 df_unexcused_past_seven = df_unexcused_absences[(df_unexcused_absences['Abw. von'] >= end_date_seven) & (df_unexcused_absences['Abw. von']<= end_date)].reset_index(drop=True)
 df_unexcused_past_seven_counted = df_unexcused_past_seven.groupby('Name')['Abw. von'].count().reset_index()
-df_unexcused_past_seven_counted.columns = ['Name', 'davon noch entschuldbar']
+df_unexcused_past_seven_counted.columns = ['Name', 'Davon noch entschuldbar']
 
 # merge the third column into one
 df_filtered_absences_seven = pd.merge(df_filtered_absences, df_unexcused_past_seven_counted, on='Name', how='outer')
