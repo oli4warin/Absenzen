@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 import pdfplumber
+import streamlit as st
 
 
 
@@ -71,8 +72,11 @@ def extract_table_from_pdf(pdf_path) -> pd.DataFrame:
     pd.DataFrame: DataFrame containing the extracted table.
     """
     with pdfplumber.open(pdf_path) as pdf:
-        first_page = pdf.pages[0]
-        table = first_page.extract_table()
+        table=  []
+        for i in range(len(pdf.pages)):
+            first_page = pdf.pages[i]
+            table_part = first_page.extract_table()
+            table.extend(table_part)
         if table:
             return pd.DataFrame(table[:], columns=['Datum', 'Wochentag', 'Start Uhrzeit', 'Ende Uhrzeit', 'Info', 'Lehrperson', 'Raum', 'Beschreibung'])
         else:
@@ -82,9 +86,6 @@ def extract_table_from_pdf(pdf_path) -> pd.DataFrame:
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Build the full path to export.csv
 csv_path = os.path.join(script_dir, "export.csv")
-            
-exam_info = extract_table_from_pdf(os.path.join(script_dir, "Pruefungsplan.pdf"))
-exam_info['Datum'] = pd.to_datetime(exam_info['Datum']).dt.strftime('%Y-%m-%d')
 
 # Vacation dates and durations in days
 year = datetime.today().year
@@ -93,8 +94,17 @@ auffahrt = datetime.fromisocalendar(year, 20, 4).strftime('%Y-%m-%d')
 pfingsten = datetime.fromisocalendar(year, 22, 1).strftime('%Y-%m-%d')
 vacation_dates = dict(zip([tagderarbeit, auffahrt, pfingsten], [1,2,1]))  
 
+st.title("Absenzenübersicht Ermittler")
 # read csv file
-df = pd.read_csv(csv_path, sep=';', encoding='utf-8')
+uploaded_file = st.file_uploader("Lade die Absenzen Datei export.csv hoch")
+st.text("Die hochgeladene Datei")
+if uploaded_file is not None:
+  df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8')
+  st.write(df)
+else:
+    st.error("Bitte lade die Absenzen Datei hoch.")
+    st.stop()
+#df = pd.read_csv(csv_path, sep=';', encoding='utf-8') # to debug
 
 # generate table for current school semester starting 20.01.2025
 start_date = datetime.fromisocalendar(year, 4, 1).strftime('%Y-%m-%d')
@@ -161,33 +171,60 @@ unexcused_dates = df_unexcused_absences.groupby('Name')['Abw. von'].apply(
     lambda x: ', '.join(x.dt.strftime('%d.%m.%Y'))
 )
 
-# Add column for absences, which overlap with exam days
-absence_date_values = df_current_semester_sorted['Abw. von'].values 
-exam_date_values = pd.to_datetime(exam_info['Datum']).values
-mask = absence_date_values[:, None] == exam_date_values[None, :]
-overlaps_array = mask.any(1)
-dates_colliding = absence_date_values[overlaps_array]
-
-number_absences_names = df_current_semester_sorted['Name'].value_counts(sort = False)
-number_absences = number_absences_names.values
-block_starts = np.cumsum(np.pad(number_absences[:-1], (1, 0)))
-labels = np.repeat(np.arange(len(number_absences)), number_absences)
-result = np.bincount(labels, weights=overlaps_array)
-overlap_number = result.astype(int).tolist()
-
-#return the colliding dates per student
-ends = np.cumsum(overlap_number)
-starts = np.concatenate(([0], ends[:-1]))
-dates_colliding_per_sus = np.split(dates_colliding.astype('datetime64[D]'), ends[:-1])
-number_absences_names = pd.DataFrame({'Name': number_absences_names.index, 'Anzahl Absenzen': number_absences_names.values, 'Überlapp Daten': dates_colliding_per_sus})
-number_absences_names['Überlapp mit Prüfungen'] = overlap_number
-
 df_filtered_absences_seven['Daten entschuldigt'] =df_filtered_absences_seven['Name'].map(excused_dates)
 df_filtered_absences_seven['Daten unentschuldigt'] = df_filtered_absences_seven['Name'].map(unexcused_dates)
-df_filtered_absences_seven_overlap = pd.merge(df_filtered_absences_seven, number_absences_names[['Überlapp mit Prüfungen', 'Überlapp Daten', 'Name']], on='Name', how='outer')
 
+#exam_info = extract_table_from_pdf(os.path.join(script_dir, "Pruefungsplan.pdf")) # to debug
+if st.checkbox("Zeige Überlapp mit Prüfungen"):
+
+    uploaded_file_exam = st.file_uploader("Lade die Prüfungsplan Datei Pruefungsplan.pdf hoch")
+    if uploaded_file_exam is None:
+        st.error("Bitte lade die Prüfungsplan Datei hoch.")
+        st.stop()
+    else:
+        exam_info = extract_table_from_pdf(uploaded_file_exam)
+        #drop nan rows
+        exam_info = exam_info.dropna(subset=['Datum'])
+        exam_info['Datum'] = pd.to_datetime(exam_info['Datum']).dt.strftime('%Y-%m-%d')
+        st.write("Die hochgeladene Prüfungsplan Datei")
+        st.write(exam_info)
+        # Add column for absences, which overlap with exam days
+        absence_date_values = df_current_semester_sorted['Abw. von'].values 
+        exam_date_values = pd.to_datetime(exam_info['Datum']).values
+        mask = absence_date_values[:, None] == exam_date_values[None, :]
+        overlaps_array = mask.any(1)
+        dates_colliding = absence_date_values[overlaps_array]
+        number_absences_names = df_current_semester_sorted['Name'].value_counts(sort = False)
+        number_absences = number_absences_names.values
+        block_starts = np.cumsum(np.pad(number_absences[:-1], (1, 0)))
+        labels = np.repeat(np.arange(len(number_absences)), number_absences)
+        result = np.bincount(labels, weights=overlaps_array)
+        overlap_number = result.astype(int).tolist()
+        #return the colliding dates per student
+        ends = np.cumsum(overlap_number)
+        starts = np.concatenate(([0], ends[:-1]))
+        dates_colliding_per_sus = np.split(dates_colliding.astype('datetime64[D]').astype(str), ends[:-1])
+        number_absences_names = pd.DataFrame({'Name': number_absences_names.index, 'Anzahl Absenzen': number_absences_names.values, 'Verpasste Prüfungen Daten': dates_colliding_per_sus})
+        number_absences_names['Verpasste Prüfungen'] = overlap_number
+        # Indicate, if absence stops right before the exam
+        exam_info["Start Uhrzeit"] 
+
+        df_filtered_absences_seven_overlap = pd.merge(df_filtered_absences_seven, number_absences_names[['Verpasste Prüfungen', 'Verpasste Prüfungen Daten', 'Name']], on='Name', how='outer')
+
+else:
+    df_filtered_absences_seven_overlap = df_filtered_absences_seven.copy()
 # export both tables to one csv file
 csv_path_out_a = os.path.join(script_dir, r".\Absenzen_Export\absenzen_output.csv")
-df_filtered_absences_seven_overlap.to_csv(csv_path_out_a, sep=';', encoding='utf-8', index=False)
+#df_filtered_absences_seven_overlap.to_csv(csv_path_out_a, sep=';', encoding='utf-8', index=False)
 
+st.subheader("Absenzenübersicht")
+st.text("Klicke auf die Spaltenüberschrift, um die Tabelle zu sortieren und lade die Datei herunter.")
+st.write(df_filtered_absences_seven_overlap)
+st.download_button(
+    label="Download Absenzenübersicht",
+    data=df_filtered_absences_seven_overlap.to_csv(sep=';', encoding='utf-8', index=False).encode('utf-8'),
+    file_name='Absenzenübersicht.csv',
+    mime='text/csv'
+)
 
+st.markdown("Das Programm befindet sich in der Beta Phase. Bitte meldet Fehler oder Verbesserungsvorschläge an julia.nguyen@sbl.ch")
