@@ -214,7 +214,7 @@ if st.checkbox("Zeige Überlapp mit Prüfungen"):
 else:
     df_filtered_absences_seven_overlap = df_filtered_absences_seven.copy()
 # export both tables to one csv file
-csv_path_out_a = os.path.join(script_dir, r".\Absenzen_Export\absenzen_output.csv")
+#csv_path_out_a = os.path.join(script_dir, r".\Absenzen_Export\absenzen_output.csv")
 #df_filtered_absences_seven_overlap.to_csv(csv_path_out_a, sep=';', encoding='utf-8', index=False)
 
 st.subheader("Absenzenübersicht")
