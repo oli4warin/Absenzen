@@ -1,14 +1,9 @@
-# open csv file
-import csv
-#import os
 import pandas as pd
 import numpy as np
-#import matplotlib.pyplot as plt
 from datetime import datetime
-#import pdfplumber
 import re
 import streamlit as st
-
+import pymupdf
 
 
 def is_valid_absence(df_tobe_filtered) -> pd.DataFrame: 
@@ -59,26 +54,7 @@ def is_valid_absence(df_tobe_filtered) -> pd.DataFrame:
     df_valid_absences = df_valid_absences.dropna(subset=['Folgetag', 'Wochenende', 'Ferien'])
     return df_valid_absences
 
-#def extract_table_from_pdf(pdf_path) -> pd.DataFrame:
-#    """
-#    Extracts a table from the first page of a PDF file and returns it as a DataFrame.
-#    
-#    Parameters:
-#    pdf_path (str): Path to the PDF file.
-#    
-#    Returns:
-#    pd.DataFrame: DataFrame containing the extracted table.
-#    """
-#    with pdfplumber.open(pdf_path) as pdf:
-#        table=  []
-#        for i in range(len(pdf.pages)):
-#            first_page = pdf.pages[i]
-#            table_part = first_page.extract_table()
-#            table.extend(table_part)
-#        if table:
-#            return pd.DataFrame(table[:], columns=['Datum', 'Wochentag', 'Start Uhrzeit', 'Ende Uhrzeit', 'Info', 'Lehrperson', 'Raum', 'Beschreibung'])
-#        else:
-#            raise ValueError("No table found in the PDF.")
+
 
 # Get the folder path where the script is located
 #script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -182,17 +158,17 @@ if st.checkbox("Zeige Überlapp mit Prüfungen"):
         st.error("Bitte lade die Prüfungsplan Datei hoch.")
         st.stop()
     else:
-        file_path = "pruefungsplan.txt"
-    
+        doc = pymupdf.open(stream=uploaded_file_exam.getvalue(), filetype="pdf")
+        
         date_pattern = r"\b\d{2}\.\d{2}\.\d{4}\b"
 
         matches = []
 
-        with open(file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                found_dates = re.findall(date_pattern, line)
-                if found_dates:
-                    matches.extend(found_dates)  # fügt alle gefundenen Daten hinzu
+        for page in doc:
+            text = page.get_text("text")
+            found_dates = re.findall(date_pattern, text)
+            if found_dates:
+                matches.extend(found_dates)  # fügt alle gefundenen Daten hinzu
 
         # In ein NumPy Array umwandeln
         date_array = np.array(matches)
