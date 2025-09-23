@@ -72,10 +72,13 @@ vacation_dates = dict(zip([tagderarbeit, auffahrt, pfingsten], [1,2,1]))
 st.title("Absenzenübersicht Ermittler")
 # read csv file
 uploaded_file = st.file_uploader("Lade die Absenzen Datei export.csv hoch")
-st.text("Die hochgeladene Datei")
+
+
+
 if uploaded_file is not None:
-  df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8')
-  st.write(df)
+    df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8')
+    if st.button("Die hochgeladene Datei"):
+        st.write(df)
 else:
     st.error("Bitte lade die Absenzen Datei hoch.")
     st.stop()
@@ -121,7 +124,8 @@ df_unexcused_absences_counted = df_unexcused_absences.groupby('Name')['Abw. von'
 df_unexcused_absences_counted.columns = ['Name', 'Unentschuldigte Absenzen dieses Semester']
 
 # merge the two dataframes into one
-df_absences_excused_unexcused = pd.merge(df_excused_absences, df_unexcused_absences, on='Name', how='outer')
+df_absences_excused_unexcused = pd.concat([df_excused_absences, df_unexcused_absences], ignore_index=True).sort_values(['Name', 'Abw. von'])
+
 
 # merge the two columns unexcused and excused absences into one table
 df_filtered_absences = pd.merge(df_excused_absences_counted, df_unexcused_absences_counted, on='Name', how='outer')
@@ -153,7 +157,7 @@ df_filtered_absences_seven['Daten unentschuldigt'] = df_filtered_absences_seven[
 df_filtered_absences_seven_overlap = df_filtered_absences_seven.copy()
 # export both tables to one csv file
 #csv_path_out_a = os.path.join(script_dir, r".\Absenzen_Export\absenzen_output.csv")
-csv_path_out_a= "Absenzen_Export\absenzen_output.csv"
+#csv_path_out_a= "Absenzen_Export\absenzen_output.csv"
 #df_filtered_absences_seven_overlap.to_csv(csv_path_out_a, sep=';', encoding='utf-8', index=False)
 
 st.subheader("Absenzenübersicht")
@@ -164,6 +168,21 @@ st.download_button(
     data=df_filtered_absences_seven_overlap.to_csv(sep=';', encoding='utf-8', index=False).encode('utf-8'),
     file_name='Absenzenübersicht.csv',
     mime='text/csv'
+)
+
+st.subheader("Gebündelte Absenzen einzelner SchülerInnen")
+studentsel= st.selectbox("SchülerIn", df_filtered_absences_seven_overlap["Name"] )
+studentsel_table= df_absences_excused_unexcused[df_absences_excused_unexcused["Name"]==studentsel].iloc[:,3:17]
+result= studentsel_table.reset_index(drop=True)
+result.index = result.index+1
+st.write(result)
+
+st.download_button(
+        label=f"Download Absenzenübersicht von {studentsel}",
+    data=result.to_csv(sep=';', encoding='utf-8', index=False).encode('utf-8'),
+    file_name=f'Absenzenübersicht_{studentsel}.csv',
+    mime='text/csv'
+
 )
 
 st.markdown("Das Programm befindet sich in der Beta Phase. Bitte meldet Fehler oder Verbesserungsvorschläge an julia.nguyen@sbl.ch")
