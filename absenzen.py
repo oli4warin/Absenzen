@@ -14,7 +14,7 @@ with tab2:
             Zeugnisunrelevante Absenzen werden nicht berücksichtigt. Jokertage werden ebenfalls nicht berücksichtigt.  
             Die hinzugefügten Dateien werden nirgends gespeichert oder abgelegt. 
             How to: Exportiere alle Absenzen aller SuS einer Klasse als csv Datei auf SAL (ganzes Semester!).  
-                Exportiere die Prüfungsdaten der Klasse als pdf Datei auf SAL. Die Absenzdatei heisst export.csv""")
+                Die Absenzdatei heisst export.csv. Die Datei enthält persönliche Dateien und muss vertraulich behandelt werden.""")
     #st.image("Absenzen_download.png")
     #st.image("Absenzen_download2.png")
     
