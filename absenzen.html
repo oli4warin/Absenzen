@@ -109,14 +109,14 @@ with tab1:
 
     st.title("Absenzenübersicht Ermittler")
     # read csv file
-    uploaded_file = st.file_uploader("Lade die Absenzen Datei export.csv hoch")
+    uploaded_file = st.file_uploader("Füge die Datei export.csv hinzu")
 
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8')
         if st.button("Die hochgeladene Datei"):
             st.write(df)
     else:
-        st.error("Bitte lade die Absenzen Datei hoch.")
+        st.error("Bitte füge die Absenzen Datei hinzu.")
         st.stop()
     #df = pd.read_csv(csv_path, sep=';', encoding='utf-8') # to debug
 
@@ -232,7 +232,7 @@ with tab1:
         )
 
 
-    st.markdown("Das Programm befindet sich in der Beta Phase. Bitte meldet Fehler oder Verbesserungsvorschläge an julia.nguyen@sbl.ch")
+    st.markdown("Das Programm befindet sich in der Beta Phase. Bitte meldet Fehler oder Verbesserungsvorschläge an julia.saner@sbl.ch")
 
 `,
 
