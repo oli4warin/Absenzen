@@ -216,6 +216,7 @@ with tab1:
         )
 
         st.subheader("Gebündelte Absenzen einzelner SchülerInnen")
+        st.text("Die Daten entsprechen jeweils nur dem ersten Absenzeintrag auf SAL und gibt keine Auskunft über die Dauer der Absenz an.")
         studentsel= st.selectbox("SchülerIn", df_filtered_absences_seven_overlap["Name"] )
         studentsel_table= df_absences_excused_unexcused[df_absences_excused_unexcused["Name"]==studentsel].iloc[:,3:17]
         result= studentsel_table.reset_index(drop=True)
