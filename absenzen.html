@@ -31,7 +31,7 @@ import streamlit as st
 tab1, tab2 = st.tabs(["Tool", "Anleitung & Bemerkungen"])
 
 with tab2:
-    st.caption("""Dieses Programm berechnet die Anzahl Absenzereignisse in einem Semester bis zum gegenwärtigen Datum.  
+	st.caption("""Dieses Programm berechnet die Anzahl Absenzereignisse in einem Semester bis zum gegenwärtigen Datum.  
             Gibt es offene Absenzen, welche noch nicht entschuldigt wurden, werden sie noch als unentschuldigt gezählt.  
             Eine weitere Spalte gibt an, wie viele Absenzen noch entschuldbar sind, da sie innerhalb der letzten sieben Tagen liegen.  
             Absenzen, welche über mehrere Tage andauern oder um Wochenenden/Feiertagen liegen, werden als ein Absenzereignis gezählt. 
@@ -39,8 +39,9 @@ with tab2:
             Die hinzugefügten Dateien werden nirgends gespeichert oder abgelegt. 
             How to: Exportiere alle Absenzen aller SuS einer Klasse als csv Datei auf SAL (ganzes Semester!).  
                 Die Absenzdatei heisst export.csv. Die Datei beinhaltet persönliche Informationen und muss vertraulich behandelt werden.""")
-    #st.image("Absenzen_download.png")
-    #st.image("Absenzen_download2.png")
+	st.video("https://webapp-gymmu.sbl.ch/absenzen/Absenzenprogramm_Anleitung.mp4")
+	#st.image("https://webapp-gymmu.sbl.ch/absenzen/help-image2.png", caption="Download Link im Schulnetz")
+	#st.image("https://webapp-gymmu.sbl.ch/absenzen/help-image1.png", caption="CSV Export")
     
 with tab1:
     def is_valid_absence(df_tobe_filtered) -> pd.DataFrame: 
@@ -243,5 +244,4 @@ with tab1:
 
     </script>
   </body>
-  <!-- Generated from Stlite Sharing (https://edit.share.stlite.net/), and the source version is 51b2dec57bba9a3dbf95c3c8a04a6c6fb73c597e -->
 </html>
