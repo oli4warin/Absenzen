@@ -3,7 +3,6 @@ import numpy as np
 from datetime import datetime
 import re
 import streamlit as st
-import pymupdf
 
 tab1, tab2 = st.tabs(["Tool", "Anleitung & Bemerkungen"])
 
